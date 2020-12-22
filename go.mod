@@ -1,0 +1,15 @@
+module github.com/likearthian/go-http
+
+go 1.15
+
+require (
+	github.com/dongri/phonenumber v0.0.0-20200813101322-28a705bfb85b // indirect
+	github.com/fatih/color v1.10.0 // indirect
+	github.com/julienschmidt/httprouter v1.3.0
+	github.com/likearthian/go-logger v0.0.0-20201222085625-8250195f9e54
+	github.com/likearthian/types v0.0.0-20201222023704-3ffd659397a5
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/tj/assert v0.0.3
+	golang.org/x/sys v0.0.0-20201221093633-bc327ba9c2f0 // indirect
+	gopkg.in/guregu/null.v4 v4.0.0 // indirect
+)
