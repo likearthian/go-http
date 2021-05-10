@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	log "github.com/likearthian/go-logger"
-	gohttp "github.com/likearthian/go-http"
 	"github.com/julienschmidt/httprouter"
+	gohttp "github.com/likearthian/go-http"
+	log "github.com/likearthian/go-logger"
 )
 
 type MiddlewareFunc func(next http.Handler) http.Handler
