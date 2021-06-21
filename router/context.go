@@ -60,6 +60,10 @@ const (
 	// PopulateRequestContext. Its value is r.Header.Get("Accept").
 	ContextKeyRequestAccept
 
+	// ContextKeyRequestAcceptEncoding is populated in the context by
+	// PopulateRequestContext. Its value is r.Header.Get("Accept-Encoding").
+	ContextKeyRequestAcceptEncoding
+
 	// ContextKeyResponseHeaders is populated in the context whenever a
 	// ServerFinalizerFunc is specified. Its value is of type http.Header, and
 	// is captured only once the entire response has been written.
@@ -95,9 +99,10 @@ func PopulateRequestContextFromHttp(ctx context.Context, r *http.Request) contex
 		ContextKeyRequestUserAgent:       r.Header.Get("User-Agent"),
 		ContextKeyRequestXRequestID:      r.Header.Get("X-Request-Id"),
 		ContextKeyRequestAccept:          r.Header.Get("Accept"),
-		ContextKeyRequestXTraceID: r.Header.Get("X-Trace-Id"),
-		ContextKeyRequestDatetime: r.Header.Get("datetime"),
-		ContextKeyRequestSignature: r.Header.Get("signature"),
+		ContextKeyRequestAcceptEncoding:  r.Header.Get("Accept-Encoding"),
+		ContextKeyRequestXTraceID:        r.Header.Get("X-Trace-Id"),
+		ContextKeyRequestDatetime:        r.Header.Get("datetime"),
+		ContextKeyRequestSignature:       r.Header.Get("signature"),
 	} {
 		ctx = context.WithValue(ctx, k, v)
 	}
