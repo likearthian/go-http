@@ -98,7 +98,7 @@ func (rtr *Router) Use(middlewares ...MiddlewareFunc) {
 
 func (rtr *Router) Subroute(pathPrefix string) *Router {
 	router := Router{
-		prefix:      pathPrefix,
+		prefix:      rtr.prefix + pathPrefix,
 		router:      rtr.router,
 		middlewares: []MiddlewareFunc{},
 		routes:      []*Route{},
