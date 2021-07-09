@@ -3,6 +3,7 @@ module github.com/likearthian/go-http
 go 1.15
 
 require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dongri/phonenumber v0.0.0-20200813101322-28a705bfb85b // indirect
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0
