@@ -49,8 +49,3 @@ const (
 	HeaderXCSRFToken                      = "X-CSRF-Token"
 	HeaderReferrerPolicy                  = "Referrer-Policy"
 )
-
-const (
-	HttpContentTypeJson          = "application/json"
-	HttpContentTypeMultipartForm = "multipart/form-data"
-)
