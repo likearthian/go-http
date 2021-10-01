@@ -17,6 +17,7 @@ import (
 
 type requestDecoderOption struct {
 	acceptedFields map[string]struct{}
+	urlParamsGetter func(context.Context) map[string]string
 }
 
 type RequestDecoderOption func(d *requestDecoderOption)
@@ -29,6 +30,9 @@ func MakeCommonGetRequestDecoder(output reflect.Type, options ...RequestDecoderO
 
 	opts := requestDecoderOption{
 		acceptedFields: make(map[string]struct{}),
+		urlParamsGetter: func(ctx context.Context) map[string]string {
+			return make(map[string]string)
+		},
 	}
 
 	for _, op := range options {
@@ -47,12 +51,12 @@ func MakeCommonGetRequestDecoder(output reflect.Type, options ...RequestDecoderO
 		pv := reflect.New(obj.Type())
 		pv.Elem().Set(obj)
 
-		params := router.GetParamsFromContext(ctx)
+		params := opts.urlParamsGetter(ctx)
 		query := r.URL.Query()
 
 		//include params into query to be parsed
-		for _, p := range params {
-			query.Add(p.Key, p.Value)
+		for k, v := range params {
+			query.Add(k, v)
 		}
 
 		for field := range query {
@@ -69,17 +73,28 @@ func MakeCommonGetRequestDecoder(output reflect.Type, options ...RequestDecoderO
 	}
 }
 
-func MakeCommonPostRequestDecoder(output reflect.Type) httptransport.DecodeRequestFunc {
+func MakeCommonPostRequestDecoder(output reflect.Type, options ...RequestDecoderOption) httptransport.DecodeRequestFunc {
+	opts := requestDecoderOption{
+		acceptedFields: make(map[string]struct{}),
+		urlParamsGetter: func(ctx context.Context) map[string]string {
+			return make(map[string]string)
+		},
+	}
+
+	for _, op := range options {
+		op(&opts)
+	}
+
 	return func(ctx context.Context, r *http.Request) (interface{}, error) {
 		obj := reflect.Zero(output)
 		pv := reflect.New(obj.Type())
 		pv.Elem().Set(obj)
 
-		params := router.GetParamsFromContext(ctx)
+		params := opts.urlParamsGetter(ctx)
 		query := r.URL.Query()
 		//include params into query to be parsed
-		for _, p := range params {
-			query.Add(p.Key, p.Value)
+		for k, v := range params {
+			query.Add(k, v)
 		}
 		err := json.NewDecoder(r.Body).Decode(pv.Interface())
 		if err != nil {
@@ -177,5 +192,11 @@ func WithAcceptedQueryFields(acceptedFields []string) RequestDecoderOption {
 		for _, f := range acceptedFields {
 			d.acceptedFields[f] = struct{}{}
 		}
+	}
+}
+
+func WithURLParamsGetter(fn func(context.Context) map[string]string) RequestDecoderOption {
+	return func(d *requestDecoderOption) {
+		d.urlParamsGetter = fn
 	}
 }
