@@ -55,11 +55,18 @@ type clientOptions struct {
 	RequestTimeout *time.Duration
 }
 
+var defaultClientOption = clientOptions{
+	RetryCount:    0,
+	RetryWaitTime: 0,
+	KeepAlive:     true,
+}
+
 type HttpClient interface {
 	Method(httpMethod string) HttpClient
 	URL(url string) HttpClient
 	SetDialTimeout(timeout time.Duration) HttpClient
 	SetRequestTimeout(timeout time.Duration) HttpClient
+	SetTransport(transport http.RoundTripper) HttpClient
 	Set(key string, value string) HttpClient
 	SetHeader(header http.Header) HttpClient
 	Body(requestBody []byte) HttpClient
@@ -78,30 +85,11 @@ type httpClient struct {
 	form        url.Values
 }
 
-func NewWithTimeout(dialTimeout time.Duration, requestTimeout time.Duration) *httpClient {
-	netTransport := &http.Transport{
-		DialContext:         (&net.Dialer{Timeout: dialTimeout}).DialContext,
-		TLSHandshakeTimeout: dialTimeout,
-	}
-
-	client := new(httpClient)
-	client.method = "GET"
-	client.contentType = gohttp.HttpContentTypeJson
-
-	client.Timeout = requestTimeout
-	client.Transport = netTransport
-
-	client.headers = http.Header{}
-	client.headers.Set("Content-Type", string(client.contentType))
-
-	return client
-}
-
 func New() HttpClient {
-	netTransport := &http.Transport{
-		DialContext:         (&net.Dialer{Timeout: defaultDialTimeOut}).DialContext,
-		TLSHandshakeTimeout: defaultDialTimeOut,
-	}
+	netTransport := http.DefaultTransport.(*http.Transport).Clone()
+
+	netTransport.DialContext = (&net.Dialer{Timeout: defaultDialTimeOut}).DialContext
+	netTransport.TLSHandshakeTimeout = defaultDialTimeOut
 
 	client := new(httpClient)
 	client.method = "GET"
@@ -128,17 +116,11 @@ func (c *httpClient) URL(url string) HttpClient {
 	return &client
 }
 
-//func (c *httpClient) SetRetryCount(retry int) *httpClient {
-//	client := *c
-//	client.retryCount = retry
-//	return &client
-//}
-//
-//func (c *httpClient) SetRetryWaitTime(waitTime time.Duration) *httpClient {
-//	client := *c
-//	client.retryWaitTime = waitTime
-//	return &client
-//}
+func (c *httpClient) SetTransport(transport http.RoundTripper) HttpClient {
+	client := *c
+	client.Transport = transport
+	return &client
+}
 
 func (c *httpClient) SetDialTimeout(timeout time.Duration) HttpClient {
 	client := *c
