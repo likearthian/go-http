@@ -16,7 +16,7 @@ import (
 )
 
 type requestDecoderOption struct {
-	acceptedFields map[string]struct{}
+	acceptedFields  map[string]struct{}
 	urlParamsGetter func(context.Context) map[string]string
 }
 

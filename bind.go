@@ -16,6 +16,10 @@ func BindURLQuery(dest interface{}, query url.Values) error {
 	return bindData(dest, query, "query")
 }
 
+func BindFormData(dest interface{}, formData url.Values) error {
+	return bindData(dest, formData, "form")
+}
+
 func bindData(ptr interface{}, data map[string][]string, tag string) error {
 	if ptr == nil || len(data) == 0 {
 		return nil
@@ -25,7 +29,7 @@ func bindData(ptr interface{}, data map[string][]string, tag string) error {
 		return errors.New("destination is not a pointer to struct")
 	}
 	typ = typ.Elem()
- 	val := reflect.ValueOf(ptr).Elem()
+	val := reflect.ValueOf(ptr).Elem()
 
 	// Map
 	if typ.Kind() == reflect.Map {
@@ -244,9 +248,9 @@ func encodeData(q url.Values, ptr interface{}, tag string) error {
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 	}
- 	val := reflect.ValueOf(ptr)
- 	if val.Kind() == reflect.Ptr {
- 		val = val.Elem()
+	val := reflect.ValueOf(ptr)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
 	}
 
 	// Map
@@ -384,9 +388,9 @@ func setToString(valueKind reflect.Kind, value reflect.Value) string {
 	case reflect.Bool:
 		return strconv.FormatBool(value.Bool())
 	case reflect.Float32:
-		return strconv.FormatFloat(value.Float(), 'f',-1,32)
+		return strconv.FormatFloat(value.Float(), 'f', -1, 32)
 	case reflect.Float64:
-		return strconv.FormatFloat(value.Float(), 'f',-1,64)
+		return strconv.FormatFloat(value.Float(), 'f', -1, 64)
 	case reflect.String:
 		return value.String()
 	}
