@@ -76,7 +76,7 @@ type HttpClient interface {
 }
 
 type httpClient struct {
-	http.Client
+	cl          *http.Client
 	method      string
 	url         string
 	requestBody []byte
@@ -91,12 +91,12 @@ func New() HttpClient {
 	netTransport.DialContext = (&net.Dialer{Timeout: defaultDialTimeOut}).DialContext
 	netTransport.TLSHandshakeTimeout = defaultDialTimeOut
 
-	client := new(httpClient)
+	client := &httpClient{cl: new(http.Client)}
 	client.method = "GET"
 	client.contentType = gohttp.HttpContentTypeJson
 
-	client.Timeout = defaultRequestTimeOut
-	client.Transport = netTransport
+	client.cl.Timeout = defaultRequestTimeOut
+	client.cl.Transport = netTransport
 
 	client.headers = http.Header{}
 	client.headers.Set("Content-Type", client.contentType)
@@ -118,13 +118,15 @@ func (c *httpClient) URL(url string) HttpClient {
 
 func (c *httpClient) SetTransport(transport http.RoundTripper) HttpClient {
 	client := *c
-	client.Transport = transport
+	client.cl = new(http.Client)
+	client.cl.Transport = transport
 	return &client
 }
 
 func (c *httpClient) SetDialTimeout(timeout time.Duration) HttpClient {
 	client := *c
-	client.Transport = &http.Transport{
+	client.cl = new(http.Client)
+	client.cl.Transport = &http.Transport{
 		DialContext:         (&net.Dialer{Timeout: timeout}).DialContext,
 		TLSHandshakeTimeout: timeout,
 	}
@@ -133,12 +135,14 @@ func (c *httpClient) SetDialTimeout(timeout time.Duration) HttpClient {
 
 func (c *httpClient) SetRequestTimeout(timeout time.Duration) HttpClient {
 	client := *c
-	client.Timeout = timeout
+	client.cl = new(http.Client)
+	client.cl.Timeout = timeout
 	return &client
 }
 
 func (c *httpClient) Set(key string, value string) HttpClient {
 	client := *c
+	client.headers = client.headers.Clone()
 	client.headers.Set(key, value)
 	return &client
 }
@@ -165,8 +169,10 @@ func (c *httpClient) BodyWithType(requestBody []byte, contentType string) HttpCl
 
 func (c *httpClient) AddFormData(key string, values ...string) HttpClient {
 	client := *c
-	if client.form == nil {
-		client.form = make(url.Values)
+	oldForm := make(url.Values)
+	client.form = url.Values{}
+	for k := range oldForm {
+		client.form[k] = append([]string{}, oldForm[k]...)
 	}
 	client.form[key] = values
 	return &client
@@ -185,14 +191,14 @@ func (c *httpClient) Call(options ...Option) (*http.Response, error) {
 	}
 
 	if clopts.DialTimeout != nil {
-		client.Transport = &http.Transport{
+		client.cl.Transport = &http.Transport{
 			DialContext:         (&net.Dialer{Timeout: *clopts.DialTimeout}).DialContext,
 			TLSHandshakeTimeout: *clopts.DialTimeout,
 		}
 	}
 
 	if clopts.RequestTimeout != nil {
-		client.Timeout = *clopts.RequestTimeout
+		client.cl.Timeout = *clopts.RequestTimeout
 	}
 
 	body := bytes.NewReader(c.requestBody)
@@ -240,7 +246,7 @@ func (c *httpClient) execute(req *http.Request) (*http.Response, error) {
 		}
 	}
 
-	return c.Do(req)
+	return c.cl.Do(req)
 }
 
 func (c *httpClient) DumpRequest() ([]byte, error) {
