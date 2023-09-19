@@ -79,12 +79,21 @@ const (
 
 	ContextKeyRequestDatetime
 	ContextKeyRequestSignature
+
+	ContextKeyRequestScheme
+
+	ContextKeyRequestTLS
 )
 
 // PopulateRequestContext is a RequestFunc that populates several values into
 // the context from the HTTP request. Those values may be extracted using the
 // corresponding ContextKey type in this package.
 func PopulateRequestContextFromHttp(ctx context.Context, r *http.Request) context.Context {
+	scheme := "https"
+	if (r.TLS == nil) {
+		scheme = "http"
+	}
+
 	for k, v := range map[contextKey]string{
 		ContextKeyRequestMethod:          r.Method,
 		ContextKeyRequestURI:             r.RequestURI,
@@ -103,6 +112,7 @@ func PopulateRequestContextFromHttp(ctx context.Context, r *http.Request) contex
 		ContextKeyRequestXTraceID:        r.Header.Get("X-Trace-Id"),
 		ContextKeyRequestDatetime:        r.Header.Get("datetime"),
 		ContextKeyRequestSignature:       r.Header.Get("signature"),
+		ContextKeyRequestScheme:          scheme,
 	} {
 		ctx = context.WithValue(ctx, k, v)
 	}

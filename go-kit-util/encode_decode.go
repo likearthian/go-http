@@ -56,7 +56,7 @@ func MakeCommonGetRequestDecoder(output reflect.Type, options ...RequestDecoderO
 
 		//include params into query to be parsed
 		for k, v := range params {
-			query.Add(k, v)
+			query.Set(k, v)
 		}
 
 		for field := range query {
@@ -94,7 +94,7 @@ func MakeCommonPostRequestDecoder(output reflect.Type, options ...RequestDecoder
 		query := r.URL.Query()
 		//include params into query to be parsed
 		for k, v := range params {
-			query.Add(k, v)
+			query.Set(k, v)
 		}
 		err := json.NewDecoder(r.Body).Decode(pv.Interface())
 		if err != nil {
